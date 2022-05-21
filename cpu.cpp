@@ -77,7 +77,7 @@ std::string CPU::processLabels(std::string input_string,
   for (auto &labelRec : label_map) {
     std::string label = labelRec.first;
     std::string targetPC = std::to_string(labelRec.second);
-    labels << " " << label << "[" << targetPC << "]";
+    labels << " " << label << "[abs: " << targetPC << "]";
   }
   std::stringstream final_input;
   final_input.str(input_string);
@@ -96,8 +96,9 @@ std::string CPU::processLabels(std::string input_string,
     std::size_t last_space = input_line.find_last_of(" ") + 1;
     std::string label = input_line.substr(last_space);
     if (label_map.find(label) != label_map.end()) {
+      int32_t rel_pc = static_cast<int32_t>(label_map[label]) - pc;
       input_line.replace(last_space, label.size(),
-                         std::to_string(label_map[label]));
+                         std::to_string(rel_pc));
     }
     pc++;
     output << input_line << "\n";

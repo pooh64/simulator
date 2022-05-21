@@ -5,11 +5,11 @@
 #include <QObject>
 #include <QThread>
 
-const uint32_t REG_SIZE = 16;
-const uint32_t MEM_SIZE = 65536;
-const uint32_t DIS_WIDTH = 256;
-const uint32_t DIS_HEIGHT = 128;
-const uint32_t DIS_SCALE = 4;
+constexpr uint32_t REG_SIZE = 16;
+constexpr uint32_t MEM_SIZE = 65536;
+constexpr uint32_t DIS_WIDTH = 256;
+constexpr uint32_t DIS_HEIGHT = 128;
+constexpr uint32_t DIS_SCALE = 4;
 
 class CPU;
 

@@ -12,7 +12,7 @@ private:
   uint32_t m_opcode;
   uint32_t m_r1;
   uint32_t m_r2;
-  uint32_t m_r3_imm;
+  int32_t m_r3_imm; // sign-extended
 
 public:
   static std::map<std::string, uint32_t> m_instrsDict;

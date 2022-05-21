@@ -94,5 +94,5 @@ void Instr::decode(uint32_t code) {
   m_opcode = code >> 24;
   m_r1 = (code >> 20) & 0xF;
   m_r2 = (code >> 16) & 0xF;
-  m_r3_imm = code & 0xFFFF;
+  m_r3_imm = (int16_t) (code & 0xFFFF); // sign extend
 }

@@ -110,13 +110,13 @@
 _ISA(0x01, EXIT, { cpu->stop(); }, {}, {}, {})
 
 // B imm -> nextPC
-_ISA(0x02, B, { cpu->m_nextPC = m_r3_imm; }, {READ_IMM}, {WRITE_IMM}, {})
+_ISA(0x02, B, { cpu->m_nextPC = cpu->m_PC + m_r3_imm; }, {READ_IMM}, {WRITE_IMM}, {})
 
 // BL rs1 = PC+1; imm -> nextPC
 _ISA(0x03, BL,
      {
        cpu->m_regFile[m_r1] = cpu->m_PC + 1;
-       cpu->m_nextPC = m_r3_imm;
+       cpu->m_nextPC = cpu->m_PC + m_r3_imm;
      },
      {READ_REG_IMM}, {WRITE_REG_IMM}, {})
 
@@ -128,7 +128,7 @@ _ISA(0x04, BR, { cpu->m_nextPC = cpu->m_regFile[m_r1]; }, {READ_REG},
 _ISA(0x05, B.EQ,
      {
        if (cpu->m_regFile[m_r1] == cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -137,7 +137,7 @@ _ISA(0x05, B.EQ,
 _ISA(0x06, B.NE,
      {
        if (cpu->m_regFile[m_r1] != cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -146,7 +146,7 @@ _ISA(0x06, B.NE,
 _ISA(0x07, B.GT,
      {
        if ((int32_t)cpu->m_regFile[m_r1] > (int32_t)cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -155,7 +155,7 @@ _ISA(0x07, B.GT,
 _ISA(0x08, B.LE,
      {
        if ((int32_t)cpu->m_regFile[m_r1] <= (int32_t)cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -164,7 +164,7 @@ _ISA(0x08, B.LE,
 _ISA(0x09, B.GTU,
      {
        if (cpu->m_regFile[m_r1] > cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -173,7 +173,7 @@ _ISA(0x09, B.GTU,
 _ISA(0x10, B.LEU,
      {
        if (cpu->m_regFile[m_r1] <= cpu->m_regFile[m_r2]) {
-         cpu->m_nextPC = m_r3_imm;
+         cpu->m_nextPC = cpu->m_PC + m_r3_imm;
        }
      },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_2REGS_12})
@@ -182,10 +182,13 @@ _ISA(0x10, B.LEU,
 /// 0x1_ Move instructions
 ///
 // MOV rd = rs
+/* // Deprecated: use addi r2 0
 _ISA(0x11, MOV, { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2]; }, {READ_2REGS},
      {WRITE_2REGS}, {DUMP_REG_2})
+*/
 
 // MOVli rd_low = imm
+// Deprecated: use addi imm, NOTICE: imm extended 
 _ISA(0x12, MOVli, { cpu->m_regFile[m_r1] = m_r3_imm; }, {READ_REG_IMM},
      {WRITE_REG_IMM}, {})
 
@@ -217,31 +220,33 @@ _ISA(0x22, SUB,
 // MUL rd = rs1 * rs2
 _ISA(0x23, MUL,
      {
-       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] * cpu->m_regFile[m_r3_imm];
+       cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] * cpu->m_regFile[m_r3_imm];
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
 // DIV rd = rs1 / rs2
 _ISA(0x24, DIV,
      {
-       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] / cpu->m_regFile[m_r3_imm];
+       cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] / cpu->m_regFile[m_r3_imm];
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
 // DIV_REM rd = rs1 % rs2
 _ISA(0x25, DIVrem,
      {
-       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] % cpu->m_regFile[m_r3_imm];
+       cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] % cpu->m_regFile[m_r3_imm];
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
 // POW rd = pow(rs1, rs2)
+/* // Deprecated: implement in code
 _ISA(0x26, POW,
      {
        cpu->m_regFile[m_r1] =
            pow(cpu->m_regFile[m_r2], cpu->m_regFile[m_r3_imm]);
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
+*/
 
 ///
 /// 0x3_ Arithmetic w/ imm instructions
@@ -252,41 +257,49 @@ _ISA(0x31, ADDi,
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // SUBi rd = rs - imm
+/* // Deprecated: use addi r2 -imm
 _ISA(0x32, SUBi,
      { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] - (int16_t)m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
+*/
 
 // MULi rd = rs * imm
 _ISA(0x33, MULi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] * (int16_t)m_r3_imm; },
+     { cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] * (int16_t)m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // DIVi rd = rs / imm
-_ISA(0x34, divi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] / (int16_t)m_r3_imm; },
+_ISA(0x34, DIVi,
+     { cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] / (int16_t)m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // DIV_REMi rd = rs % imm
 _ISA(0x35, DIV_REMi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] % (int16_t)m_r3_imm; },
+     { cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] % (int16_t)m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // POWi  rd = pow(rs, imm)
+/* // Deprecated: implement in code
 _ISA(0x36, POWi,
      { cpu->m_regFile[m_r1] = pow(cpu->m_regFile[m_r2], (int16_t)m_r3_imm); },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
+*/
 
 // POWi_  rd = pow(imm, rs)
+/* // Deprecated: implement in code
 _ISA(0x37, POWi_,
      { cpu->m_regFile[m_r1] = pow((int16_t)m_r3_imm, cpu->m_regFile[m_r2]); },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
+*/
 
 ///
 /// 0x4_ Bitwise instructions
 ///
 // NOT rd = ~rs1
+/* // Deprecated: use xori r2 -1
 _ISA(0x40, NOT, { cpu->m_regFile[m_r1] = ~cpu->m_regFile[m_r2]; }, {READ_2REGS},
      {WRITE_2REGS}, {DUMP_2REGS_12})
+*/
 
 // AND rd = rs1 & rs2
 _ISA(0x41, AND,
@@ -312,7 +325,7 @@ _ISA(0x43, XOR,
 // SHL rd = rs1 << rs2
 _ISA(0x44, SHL,
      {
-       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] << cpu->m_regFile[m_r3_imm];
+       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] << (31 & cpu->m_regFile[m_r3_imm]);
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
@@ -320,14 +333,14 @@ _ISA(0x44, SHL,
 _ISA(0x45, SHR,
      {
        cpu->m_regFile[m_r1] =
-           (uint32_t)cpu->m_regFile[m_r2] >> cpu->m_regFile[m_r3_imm];
+           (uint32_t)cpu->m_regFile[m_r2] >> (31 & cpu->m_regFile[m_r3_imm]);
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
 // SHRA  rd = rs1 >> rs2
 _ISA(0x46, SHRA,
      {
-       cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] >> cpu->m_regFile[m_r3_imm];
+       cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] >> (31 & cpu->m_regFile[m_r3_imm]);
      },
      {READ_3REGS}, {WRITE_3REGS}, {DUMP_2REGS_23})
 
@@ -336,30 +349,30 @@ _ISA(0x46, SHRA,
 ///
 // ANDi rd = rs & imm
 _ISA(0x51, ANDi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] & (int16_t)m_r3_imm; },
+     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] & m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // ORi rd = rs | imm
 _ISA(0x52, ORi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] | (int16_t)m_r3_imm; },
+     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] | m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // XORi rd = rs ^ imm
 _ISA(0x53, XORi,
-     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] ^ (int16_t)m_r3_imm; },
+     { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] ^ m_r3_imm; },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // SHLi rd = rs << imm
-_ISA(0x54, SHLi, { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] << m_r3_imm; },
+_ISA(0x54, SHLi, { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] << (31 & m_r3_imm); },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // SHRi rd = (unsigned) rs >> imm
 _ISA(0x55, SHRi,
-     { cpu->m_regFile[m_r1] = (uint32_t)cpu->m_regFile[m_r2] >> m_r3_imm; },
+     { cpu->m_regFile[m_r1] = (uint32_t)cpu->m_regFile[m_r2] >> (31 & m_r3_imm); },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 // SHRAi rd = rs >> imm
-_ISA(0x56, SHRAi, { cpu->m_regFile[m_r1] = cpu->m_regFile[m_r2] >> m_r3_imm; },
+_ISA(0x56, SHRAi, { cpu->m_regFile[m_r1] = (int32_t) cpu->m_regFile[m_r2] >> (31 & m_r3_imm); },
      {READ_2REGS_IMM}, {WRITE_2REGS_IMM}, {DUMP_REG_2})
 
 ///
