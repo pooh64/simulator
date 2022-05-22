@@ -26,7 +26,7 @@ public:
   explicit CPU(QObject *parent = nullptr);
   ~CPU();
   std::string processLabels(std::string input, std::stringstream &labels);
-  uint32_t &readMem(uint32_t mem);
+  uint32_t &readMem(uint32_t addr);
 public slots:
   void readInstrs(QString input);
   void run();

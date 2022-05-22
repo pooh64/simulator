@@ -12,19 +12,18 @@ CPU::CPU(QObject *parent) : QObject(parent) {
 
 CPU::~CPU() { delete execThread; }
 
-uint32_t &CPU::readMem(uint32_t mem) {
-  if (mem < MEM_SIZE) {
-    return m_mem[mem];
-  } else {
-    m_run = false;
-    Instr instr;
-    instr.decode(m_mem[m_nextPC]);
-    showMsg(QString::fromStdString(
-        "[ERROR] Memory access at " + instr.disasm() + " [" +
-        instr.dumpRegs(this) + "] beyond the simulator's memory"));
-    dumpStatus();
-    dumpMem();
+uint32_t &CPU::readMem(uint32_t addr) {
+  if (addr < MEM_SIZE * 4) {
+    return *(uint32_t*) ((uint8_t*) m_mem + addr); // unaligned
   }
+  m_run = false;
+  Instr instr;
+  instr.decode(m_mem[m_nextPC]);
+  showMsg(QString::fromStdString(
+        "[ERROR] Memory access at " + instr.disasm() + " [" +
+          instr.dumpRegs(this) + "] beyond the simulator's memory"));
+  dumpStatus();
+  dumpMem();
   return m_mem[0];
 }
 
